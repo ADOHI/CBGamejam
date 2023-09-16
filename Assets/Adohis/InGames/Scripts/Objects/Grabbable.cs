@@ -1,49 +1,87 @@
+using CBGamejam.Ingame.Characters;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
 
 namespace CBGamejam.Ingame.Objects
 {
+    [RequireComponent(typeof(Interactable))]
     public class Grabbable : MonoBehaviour
     {
-        private Outline outline;
-        private Rigidbody rigidbody;
-        public bool isFocused;
+
+        [HideInInspector] public CustomCharacterContoller currentInteractingCharacter;
+        private float initialPlayerMass;
+        private Collider collider;
+        [HideInInspector] public Rigidbody rigidbody;
+        
+
+        public bool isHolding;
+        public bool isPulling;
 
         private void Awake()
         {
-            if (!TryGetComponent(out outline))
-            {
-                outline = gameObject.AddComponent<Outline>();
-            }
-            outline.OutlineWidth = 0f;
-
             if (!TryGetComponent(out rigidbody))
             {
                 rigidbody = gameObject.AddComponent<Rigidbody>();
             }
+
+            if (!TryGetComponent(out collider))
+            {
+                collider = gameObject.AddComponent<BoxCollider>();
+            }
         }
 
-        public void OnEnterInteraction()
+        private void Update()
         {
-            outline.OutlineWidth = 5f;
-            isFocused = true;
+            if (isHolding)
+            {
+                transform.position = currentInteractingCharacter.holdPositionTransform.position;
+                transform.forward = currentInteractingCharacter.transform.forward;
+            }
         }
 
-        public void OnExitInteraction()
+        public void OnStartPull(CustomCharacterContoller controller)
         {
-            outline.OutlineWidth = 0f;
-            isFocused = false;
+            currentInteractingCharacter = controller;
+            isPulling = true;
         }
 
-        public void OnStartGrab()
+        public void OnEndPull()
         {
-
+            currentInteractingCharacter = null;
+            isPulling = false;
         }
 
-        public void OnExitGrab()
+        public void OnEndGrab()
         {
+            if (isHolding)
+            {
+                OnEndHold();
+            }
+            if (isPulling)
+            {
+                OnEndPull();
+            }
+        }
 
+        public void OnStartHold(CustomCharacterContoller controller)
+        {
+            isHolding = true;
+            rigidbody.isKinematic = true;
+            collider.enabled = false;
+            currentInteractingCharacter = controller;
+            initialPlayerMass = currentInteractingCharacter.rigidbody.mass;
+            currentInteractingCharacter.rigidbody.mass = initialPlayerMass + rigidbody.mass;
+        }
+
+        public void OnEndHold()
+        {
+            isHolding = false;
+            rigidbody.isKinematic = false;
+            collider.enabled = true;
+            currentInteractingCharacter.rigidbody.mass = initialPlayerMass;
+            currentInteractingCharacter = null;
         }
     }
 
