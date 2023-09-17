@@ -14,8 +14,8 @@ namespace CBGamejam.Ingame.Objects
         private float initialPlayerMass;
         private Collider collider;
         [HideInInspector] public Rigidbody rigidbody;
-        
 
+        public bool isForward;
         public bool isHolding;
         public bool isPulling;
 
@@ -37,7 +37,14 @@ namespace CBGamejam.Ingame.Objects
             if (isHolding)
             {
                 transform.position = currentInteractingCharacter.holdPositionTransform.position;
-                transform.forward = currentInteractingCharacter.transform.forward;
+                if (isForward)
+                {
+                    transform.forward = currentInteractingCharacter.transform.forward;
+                }
+                else
+                {
+                    transform.up = currentInteractingCharacter.transform.forward;
+                }
             }
         }
 

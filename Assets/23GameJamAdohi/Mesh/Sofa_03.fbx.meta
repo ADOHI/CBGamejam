@@ -9,11 +9,6 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: ColorTexture001
     second: {fileID: 2100000, guid: 1e5e06276da8db54983c7ae445b03c51, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ColorTexture003
-    second: {fileID: 2100000, guid: 21361655f656c294aa2431b172c09336, type: 2}
   materials:
     materialImportMode: 2
     materialName: 1

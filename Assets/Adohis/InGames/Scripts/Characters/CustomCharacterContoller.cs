@@ -1,4 +1,5 @@
 using CBGamejam.Ingame.Characters.FXs;
+using CBGamejam.Ingame.Manager;
 using CBGamejam.Ingame.Objects;
 using Cysharp.Threading.Tasks;
 using System.Collections;
@@ -6,15 +7,18 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.UI;
 
 namespace CBGamejam.Ingame.Characters
 {
     public class CustomCharacterContoller : MonoBehaviour
     {
         [HideInInspector] public Rigidbody rigidbody;
+        [HideInInspector] public bool isDancing;
         private ConfigurableJoint joint;
         private Vector3 characterForwardDirection => transform.forward;
         private Vector3 characterViewingDirection;
+
         public int playerIndex;
         [Header("MoveSetting")]
         private bool isMoveAvailable = true;
@@ -34,8 +38,12 @@ namespace CBGamejam.Ingame.Characters
         public float grabRadius;
         public float grabPowerThreshold;
         public LayerMask grabbableLayerMask;
+        public float minLayingDuration;
         public float maxLayingDuration;
+        public float minThrowingPower;
         public float maxThrowingPower;
+        private float layingProgress;
+        public Image layingProgressImage;
         public Transform holdPositionTransform;
         [Header("SteeringSetting")]
         private bool isSteering;
@@ -47,10 +55,22 @@ namespace CBGamejam.Ingame.Characters
         public float breakThrowingProgress = 0.1f;
         [Header("Animations")]
         public Animator animator;
+        
         [Header("FXs")]
         public LetterEffectSystem letterEffectSystem;
         public float letterEffectInterval = 10f;
         public float letterEffectRandomness = 0.3f;
+        public ParticleSystem footStep;
+        public Vector3 balloonOffset;
+        public GameObject steeringImage;
+        public GameObject hardImage;
+        [Header("SFXs")]
+        public AudioClip throwSound;
+        public AudioClip footStepSfx;
+        public float footStepInterval = 0.5f;
+        public AudioClip grabSfx;
+        [Header("Respawn")]
+        public Transform respawnPoint;
 
         [Header("Input")]
         public KeyCode upKey = KeyCode.W;
@@ -60,7 +80,7 @@ namespace CBGamejam.Ingame.Characters
         public KeyCode grabKey = KeyCode.G;
         public KeyCode interactionKey = KeyCode.H;
         public KeyCode runKey = KeyCode.LeftShift;
-        
+        public KeyCode danceKey = KeyCode.Space;
         private void Awake()
         {
             if (!TryGetComponent(out rigidbody))
@@ -82,6 +102,9 @@ namespace CBGamejam.Ingame.Characters
         private void Start()
         {
             ShowLetterFxAsnyc().AttachExternalCancellation(this.destroyCancellationToken).Forget();
+            layingProgressImage.color = (playerIndex == 0) ? IngameManager.Instance.firstPlayerColor : IngameManager.Instance.secondPlayerColor;
+
+            PlayFootstepSfx(footStepInterval).AttachExternalCancellation(this.GetCancellationTokenOnDestroy()).Forget();
         }
 
         private void Update()
@@ -90,6 +113,25 @@ namespace CBGamejam.Ingame.Characters
             ScanAround();
             GrabOrLay();
             Interact();
+
+            footStep.transform.position = transform.position + Vector3.up;
+            layingProgressImage.transform.position = Camera.main.WorldToScreenPoint(transform.position);
+            layingProgressImage.fillAmount = layingProgress;
+            var emission = footStep.emission;
+            if (isMoveAvailable)
+            {
+                emission.rateOverTime = rigidbody.velocity.magnitude;
+            }
+            else
+            {
+                emission.rateOverTime = 0f;
+            }
+
+            steeringImage.transform.position = Camera.main.WorldToScreenPoint(transform.position + balloonOffset);
+            hardImage.transform.position = Camera.main.WorldToScreenPoint(transform.position + balloonOffset);
+            steeringImage.SetActive(isSteering);
+            hardImage.SetActive(isPulling);
+
         }
 
         private void FixedUpdate()
@@ -108,11 +150,14 @@ namespace CBGamejam.Ingame.Characters
             animator.SetBool("isCarrying", isHolding || isPulling);
             //Lay();
         }
-
+        public void ResetPosition()
+        {
+            transform.position = respawnPoint.transform.position;
+        }
         private void Move()
         {
             var directionVector = Vector3.zero;
-            
+
             if (Input.GetKey(upKey))
             {
                 directionVector += Vector3.forward;
@@ -186,14 +231,47 @@ namespace CBGamejam.Ingame.Characters
                         characterViewingDirection = directionVector;
                     }
                 }
+
+                if (Input.GetKey(KeyCode.Space))
+                {
+                    animator.SetBool("isDance", false);
+                    isDancing = false;
+                }
             }
             else
             {
                 animator.SetBool("isMoveLeft", false);
                 animator.SetBool("isMoveRight", false);
+
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    animator.SetInteger("danceIndex", Random.Range(0, 4));
+                }
+
+                if (Input.GetKey(KeyCode.Space))
+                {
+                    animator.SetBool("isDance", true);
+
+                    isDancing = true;
+                }
+                else
+                {
+                    animator.SetBool("isDance", false);
+                    isDancing = false;
+                }
             }
 
             //controller.Move(directionVector.normalized * moveSpeed * Time.deltaTime);
+        }
+
+        private async UniTask PlayFootstepSfx(float interval)
+        {
+            if (rigidbody.velocity.magnitude > 0.1f)
+            {
+                SoundManager.PlayFx(footStepSfx, volume: 5f);
+            }
+            await UniTask.Delay((int)(interval * 1000f));
+            PlayFootstepSfx(interval).AttachExternalCancellation(this.GetCancellationTokenOnDestroy()).Forget();
         }
 
         private void RotateCharacterModel()
@@ -226,6 +304,8 @@ namespace CBGamejam.Ingame.Characters
                     //Grab
                     var grabbedRigidbody = focusedGrabbable.rigidbody;
 
+                    SoundManager.PlayFx(grabSfx, volume: 3f);
+
                     if (grabbedRigidbody.mass > grabPowerThreshold)
                     {
                         //Pull
@@ -255,13 +335,15 @@ namespace CBGamejam.Ingame.Characters
             {
                 if (isLaying)
                 {
-                    Lay(currentLayingDuration / maxLayingDuration);
+                    Lay(layingProgress);
                 }
             }
 
             if (isLaying)
             {
-                currentLayingDuration = Mathf.Clamp(currentLayingDuration + Time.deltaTime, 0f, maxLayingDuration);
+                currentLayingDuration = currentLayingDuration + Time.deltaTime;
+                layingProgress = Mathf.Clamp01((currentLayingDuration - minLayingDuration) / maxLayingDuration);
+
             }
         }        
 
@@ -305,12 +387,17 @@ namespace CBGamejam.Ingame.Characters
             joint.zMotion = ConfigurableJointMotion.Free;
             interactingGrabbable.OnEndGrab();
 
+            if (progress > 0f)
+            {
+                SoundManager.PlayFx(throwSound);
+            }
             //Throw
-            var throwingPower = Mathf.Lerp(0f, maxThrowingPower, progress);
+            var throwingPower = Mathf.Lerp(minThrowingPower, maxThrowingPower, progress);
             var throwDirection = (characterViewingDirection + Vector3.up).normalized;
             interactingGrabbable.rigidbody.AddForce(throwDirection * throwingPower, ForceMode.Impulse);
             //interactableGrabbable
-
+            layingProgress = 0f;
+            currentLayingDuration = 0f;
             interactingGrabbable = null;
             isGrabbing = false;
             isLaying = false;
@@ -418,6 +505,11 @@ namespace CBGamejam.Ingame.Characters
                 }
 
                 var scannedGrabbable = maxScoredObject.GetComponent<Interactable>();
+
+                if (scannedGrabbable == null)
+                {
+                    return;
+                }
 
                 if (focusedInteractable == null)
                 {
