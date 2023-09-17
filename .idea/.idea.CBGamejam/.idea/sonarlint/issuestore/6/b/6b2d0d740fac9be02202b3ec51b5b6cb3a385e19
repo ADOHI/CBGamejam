@@ -1,0 +1,7 @@
+
+lcsharpsquid:S101"KRename class 'zzz' to match pascal case naming rules, consider using 'Zzz'.(èæ”Åûÿÿÿÿ
+Dcsharpsquid:S3903""Move 'zzz' into a named namespace.(èæ”Åûÿÿÿÿ
+¢csharpsquid:S1186"yAdd a nested comment explaining why this method is empty, throw a 'NotSupportedException' or complete the implementation.(ûàîºûÿÿÿÿ8§Ÿ÷ô©1
+hcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(”÷Œˆ8§Ÿ÷ô©1
+hcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(ÆòÃõ8Êùøø©1
+hcsharpsquid:S1104	"DMake this field 'private' and encapsulate it in a 'public' property.(Ë¾Ôë8§¿ü©1

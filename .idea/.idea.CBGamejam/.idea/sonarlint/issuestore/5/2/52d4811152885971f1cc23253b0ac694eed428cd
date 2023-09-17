@@ -1,0 +1,16 @@
+
+Ocsharpsquid:S3903"+Move 'EndingScript' into a named namespace.(ë˜Æ„8Î‡ñ÷©1
+¢csharpsquid:S1186""yAdd a nested comment explaining why this method is empty, throw a 'NotSupportedException' or complete the implementation.(ûàîºûÿÿÿÿ8Ï‡ñ÷©1
+gcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(èÄÙ>8Ï‡ñ÷©1
+hcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(–¹Ï»8Ï‡ñ÷©1
+mcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(´°¦—ıÿÿÿÿ8Ï‡ñ÷©1
+hcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(ßü×È8Ï‡ñ÷©1
+hcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(ß™àš8ôû‡ù©1
+mcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(Ç¶ú«şÿÿÿÿ8ƒ”Øû©1
+mcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(œë™Éûÿÿÿÿ8–ñù©1
+mcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(˜ò‹¾úÿÿÿÿ8ûöÅù©1
+mcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(ğàúÜşÿÿÿÿ8ûöÅù©1
+hcsharpsquid:S1104"DMake this field 'private' and encapsulate it in a 'public' property.(„×°£8Œ¬Şû©1
+ncsharpsquid:S3241~"JChange return type to 'void'; not a single caller uses the returned value.(”—‹8ş™û©1
+Gcsharpsquid:S125s"Remove this commented out code.(ÚÜÄüÿÿÿÿ8ş™û©1
+Xcsharpsquid:S1135u"4Complete the task associated to this 'TODO' comment.(ìúÁ8ş™û©1
