@@ -50,6 +50,8 @@ namespace CBGamejam.Ingame.Manager
         public Color firstPlayerColor;
         public Color secondPlayerColor;
 
+        [Header("Result")]
+        public CaptureScripts captureScripts;
         private void Awake()
         {
             remainPlayTime = maxPlaytime;
@@ -135,6 +137,10 @@ namespace CBGamejam.Ingame.Manager
             SoundManager.PlayFx(shutterSfx, volume:5f);
             fullCameraCrossHair.SetActive(false);
             GlobalUIManager.Instance.FlashAsync().Forget();
+
+            //captureScripts.gameObject.SetActive(true);
+            //captureScripts.score = 4;
+            //captureScripts.StartCapture();
         }
 
 

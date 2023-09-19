@@ -72,7 +72,7 @@ public class ButtonScirpt : MonoBehaviour
         Debug.Log("load Stage");
        
 
-        StartCoroutine(LoadScene("GiGi"));
+        StartCoroutine(LoadScene("IngameScene"));
     }
 
     public void LoadIntro()
